@@ -85,13 +85,15 @@ namespace AddHolePlugin
             return Result.Succeeded;
         }
 
+        //метод для расстановки квадратных отверстий в стенах под трубы сторона квадрата равна диаметру
         private void GetHolePipe(Document arDoc, FamilySymbol familySymbol, List<Pipe> pipes, ReferenceIntersector referenceIntersector)
         {
             foreach (Pipe pipe in pipes)
-            {                                                               //ElementClassFilter и OfClass делают одно и то же
-                Line curve = (pipe.Location as LocationCurve).Curve as Line;  //у воздуховода определяем Location обращаемся к кривой результат заносим в переменную
-                                                                              //так как у прямых Line есть св-во Direction
-                XYZ point = curve.GetEndPoint(0); //найдем точку
+            {
+                //определяем Location обращаемся к кривой результат заносим в переменную
+                Line curve = (pipe.Location as LocationCurve).Curve as Line;  
+                                                                            
+                XYZ point = curve.GetEndPoint(0); 
                 XYZ direction = curve.Direction;
 
                 //найдем пересечения линий со стеной, ограничим колекцию элементами с длиой меньше воздуховода
@@ -102,14 +104,13 @@ namespace AddHolePlugin
 
                 foreach (ReferenceWithContext refer in intersections)
                 {
-                    double proximity = refer.Proximity; //расстояние до стены
-                    Reference reference = refer.GetReference(); //узнаем id элемента
-                    //зная id можно получить в докум стену на которую идет ссылка
-                    Wall wall = arDoc.GetElement(reference.ElementId) as Wall; //получим стену
-                    Level level = arDoc.GetElement(wall.LevelId) as Level; //получим уровень стены
+                    double proximity = refer.Proximity; 
+                    Reference reference = refer.GetReference(); 
+                   
+                    Wall wall = arDoc.GetElement(reference.ElementId) as Wall; 
+                    Level level = arDoc.GetElement(wall.LevelId) as Level; 
 
-                    XYZ pointHole = point + (direction * proximity); //точка начала+(направление луча*расстояние до стены direction имеет тип XYZ)
-
+                    XYZ pointHole = point + (direction * proximity); 
                     //экземпляр семейства добавится с определенными нами размерами
                     FamilyInstance hole = arDoc.Create.NewFamilyInstance(pointHole, familySymbol, wall, level, StructuralType.NonStructural);
 
@@ -122,6 +123,7 @@ namespace AddHolePlugin
             }
         }
 
+        //метод для расстановки квадратных отверстий в стенах под воздуховоды сторона квадрата равна диаметру
         private static void GetHoleDuct(Document arDoc, FamilySymbol familySymbol, List<Duct> ducts, ReferenceIntersector referenceIntersector)
         {
             foreach (Duct duct in ducts)
